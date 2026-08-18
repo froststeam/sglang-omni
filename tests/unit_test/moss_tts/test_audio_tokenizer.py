@@ -866,6 +866,19 @@ def test_vocoder_decoder_requires_packed_flash_for_every_transformer() -> None:
     assert not local.supports_packed_flash("cuda", torch.float16)
 
 
+def test_vocoder_decoder_allows_mate_varlen_attention_on_musa() -> None:
+    source = _V1WeightsProjectedStage()
+    decoder = MossAudioTokenizerVocoderDecoder(nn.ModuleList([source]))
+    attention = decoder[0].transformer.layers[0].self_attn
+    attention._flash_attn_varlen = lambda *args, **kwargs: None
+    attention._flash_attn_varlen_backend = "mate"
+
+    assert decoder.supports_packed_flash("musa", torch.bfloat16)
+
+    attention._flash_attn_varlen_backend = "sglang"
+    assert not decoder.supports_packed_flash("musa", torch.bfloat16)
+
+
 def test_vocoder_decoder_wraps_v1_weights_moss_audio_tokenizer_fields() -> None:
     source = _V1WeightsProjectedStage()
     wrapped = MossAudioTokenizerVocoderDecoder(nn.ModuleList([source]))

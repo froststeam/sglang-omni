@@ -10,6 +10,7 @@ from collections.abc import Iterator, Sequence
 from contextlib import nullcontext
 from dataclasses import dataclass
 from itertools import accumulate
+from types import SimpleNamespace
 from typing import Any
 
 import torch
@@ -19,8 +20,16 @@ from transformers import AutoModel
 
 try:
     from sglang.jit_kernel.flash_attention import flash_attn_varlen_func
+
+    _flash_attn_varlen_backend = "sglang"
 except ImportError:
-    flash_attn_varlen_func = None
+    try:
+        from mate import flash_attn_varlen_func
+
+        _flash_attn_varlen_backend = "mate"
+    except ImportError:
+        flash_attn_varlen_func = None
+        _flash_attn_varlen_backend = None
 
 from sglang_omni.models.moss_tts.hf_loading import moss_transformers_processor_compat
 from sglang_omni.models.moss_tts.vocoder_kernels import (
@@ -40,6 +49,15 @@ _LOUDNESS_GAIN_MAX_DB = 3.0
 _FA3_LOCAL_WINDOW_QUERY_TILE_SIZE = 128
 _HF_FLASH_ATTENTION_2_IMPLEMENTATION = "flash_attention_2"
 _PACKED_FLASH_ATTENTION_BACKEND = "packed_flash_attention"
+
+
+def _attention_device(device: str | torch.device) -> torch.device | SimpleNamespace:
+    try:
+        return torch.device(device)
+    except RuntimeError:
+        if isinstance(device, str):
+            return SimpleNamespace(type=device.split(":", 1)[0])
+        raise
 
 
 def _single_module(source: nn.Module, singular: str, plural: str) -> nn.Module:
@@ -456,6 +474,7 @@ class MossAudioTokenizerAttention(nn.Module):
             source, "resolve_attention_implementation"
         )
         self._flash_attn_varlen = flash_attn_varlen_func
+        self._flash_attn_varlen_backend = _flash_attn_varlen_backend
         max_period = self.rope.max_period if self.rope is not None else 10000.0
         self._packed_rope_cache = packed_rope_cache or _MossPackedRopeCache(
             max_period=max_period
@@ -487,7 +506,12 @@ class MossAudioTokenizerAttention(nn.Module):
         device: torch.device,
         dtype: torch.dtype | None,
     ) -> bool:
-        if dtype is None or self._flash_attn_varlen is None or device.type != "cuda":
+        if dtype is None or self._flash_attn_varlen is None:
+            return False
+        if self._flash_attn_varlen_backend == "mate":
+            if device.type not in ("cuda", "musa"):
+                return False
+        elif device.type != "cuda":
             return False
         preferred = getattr(self.source, "attention_implementation", None)
         if preferred not in (None, _HF_FLASH_ATTENTION_2_IMPLEMENTATION):
@@ -889,7 +913,7 @@ class MossAudioTokenizerVocoderDecoder(nn.Module):
         device: str | torch.device,
         dtype: torch.dtype | None,
     ) -> bool:
-        device = torch.device(device)
+        device = _attention_device(device)
         transformer_stages = [
             stage
             for stage in self.stages
