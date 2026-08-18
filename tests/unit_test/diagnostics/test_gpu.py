@@ -280,6 +280,16 @@ def test_backend_inventory_resolves_cuda_variant_distributions(monkeypatch) -> N
     assert all(backend["importable"] for backend in backends)
 
 
+def test_backend_inventory_tracks_musa_runtime_and_attention_backends() -> None:
+    backend_keys = {
+        (category, name, module)
+        for category, name, module in gpu_diagnostics._BACKENDS
+    }
+
+    assert ("runtime", "torchada", "torchada") in backend_keys
+    assert ("attention", "mate", "mate") in backend_keys
+
+
 def test_module_import_probe_survives_hard_crash(tmp_path, monkeypatch) -> None:
     assert gpu_diagnostics._module_import_error("json") is None
 

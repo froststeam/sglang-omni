@@ -20,8 +20,10 @@ from sglang_omni.utils.gpu_memory import (
 )
 
 _BACKENDS = (
+    ("runtime", "torchada", "torchada"),
     ("attention", "flash-attn-4", "flash_attn.cute"),
     ("attention", "flashinfer", "flashinfer"),
+    ("attention", "mate", "mate"),
     ("attention", "triton", "triton"),
     ("attention", "torch-sdpa", "torch.nn.functional"),
     ("gemm", "sgl-deep-gemm", "deep_gemm"),
