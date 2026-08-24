@@ -34,8 +34,6 @@ class MUSAOmniPlatform(CUDAOmniPlatform):
         model_config: ModelConfig,
         model_arch_override: str | None,
     ) -> str | None:
-        server_args.moe_runner_backend = "auto"
-        server_args.fp8_gemm_runner_backend = "auto"
         return OmniPlatform.apply_model_worker_backend_policy(
             self, server_args, model_config, model_arch_override
         )
