@@ -7,6 +7,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from typing import Any
 
+from sglang.srt.model_executor.cuda_graph_config import default_cuda_graph_config
+
 from sglang_omni.scheduling.generation_batch_policy import (
     CudaGraphBackend,
     build_generation_batch_overrides,
@@ -97,6 +99,10 @@ class SGLangGenerationEngineBuilder(ABC):
             context_length=self.context_length,
             **overrides,
         )
+        if getattr(server_args, "cuda_graph_config", None) is None:
+            server_args.cuda_graph_config = default_cuda_graph_config()
+        if not hasattr(server_args, "_cuda_graph_config_locked"):
+            server_args._cuda_graph_config_locked = set()
         self.customize_server_args(server_args)
         self.validate_before_infrastructure(server_args)
 
