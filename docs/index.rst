@@ -87,6 +87,7 @@ Supported Models
 
    get_started/installation.md
    get_started/installation_xpu.md
+   get_started/installation_musa.md
 
 
 .. toctree::
