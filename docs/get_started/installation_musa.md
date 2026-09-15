@@ -28,7 +28,7 @@ git clone https://github.com/sgl-project/sglang-omni.git
 cd sglang-omni
 docker build -f docker/musa.Dockerfile \
   --build-arg SGLANG_MUSA_IMAGE=sglang:v0.5.19-musa520-s5000 \
-  -t sglang-omni:v0.1.5-musa520-s5000 .
+  -t sglang-omni:main-musa520-s5000 .
 ```
 
 Run the image with MUSA devices exposed by the host runtime. If `mthreads` is
@@ -44,7 +44,7 @@ docker run -it --rm \
   -v ~/.cache/huggingface:/cache/huggingface \
   --shm-size=32g \
   -p 8000:8000 \
-  sglang-omni:v0.1.5-musa520-s5000
+  sglang-omni:main-musa520-s5000
 ```
 
 ## 🛠️ Option B: Install from Source
