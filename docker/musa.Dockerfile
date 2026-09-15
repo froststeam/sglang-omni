@@ -3,7 +3,7 @@
 # SGLang-Omni MUSA image. Build SGLang's MUSA image first:
 #   docker build -f docker/musa.Dockerfile -t sglang:v0.5.19-musa520-s5000 <sglang-repo>
 # Then build this image:
-#   docker build -f docker/musa.Dockerfile -t sglang-omni:v0.1.5-musa520-s5000 .
+#   docker build -f docker/musa.Dockerfile -t sglang-omni:main-musa520-s5000 .
 
 ARG SGLANG_MUSA_IMAGE=sglang:v0.5.19-musa520-s5000
 
