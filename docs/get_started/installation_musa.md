@@ -26,6 +26,7 @@ Then build the SGLang-Omni image on top of it:
 ```bash
 git clone https://github.com/sgl-project/sglang-omni.git
 cd sglang-omni
+omni_root="$(pwd)"
 docker build -f docker/musa.Dockerfile \
   --build-arg SGLANG_MUSA_IMAGE=sglang:main-musa520-s5000 \
   -t sglang-omni:main-musa520-s5000 .
@@ -80,7 +81,7 @@ cd build
 make -j"$(nproc)"
 sudo make install
 sudo ldconfig
-cd - >/dev/null
+cd "${omni_root}"
 
 cp pyproject_musa.toml pyproject.toml
 TORCH_DEVICE_BACKEND_AUTOLOAD=0 \
@@ -96,6 +97,9 @@ python -m pip install -e . \
   --index-url https://dl.mthreads.com/repo/api/pypi/pypi/simple \
   --extra-index-url https://pypi.org/simple \
   --trusted-host dl.mthreads.com
+
+python -m pip install --no-cache-dir --no-deps sox einops
+python -m pip install --no-cache-dir --no-deps qwen-tts==0.1.1
 ```
 
 The MUSA pyproject installs only SGLang-Omni overlay dependencies. The base
