@@ -15,10 +15,14 @@ base SGLang environment, follow the SGLang Moore Threads GPU installation guide.
 Build the SGLang MUSA image first:
 
 ```bash
+SGLANG_COMMIT=1895cabfa8d0c7b171d72717812abe0c5d831791
 git clone --branch main --single-branch \
   https://github.com/sgl-project/sglang.git
 cd sglang
-docker build -f docker/musa.Dockerfile -t sglang:main-musa520-s5000 .
+git checkout "${SGLANG_COMMIT}"
+git show -s --format='Using SGLang commit: %H' HEAD
+docker build -f docker/musa.Dockerfile \
+  -t sglang:main-1895cab-musa520-s5000 .
 ```
 
 Then build the SGLang-Omni image on top of it:
@@ -28,7 +32,7 @@ git clone https://github.com/sgl-project/sglang-omni.git
 cd sglang-omni
 omni_root="$(pwd)"
 docker build -f docker/musa.Dockerfile \
-  --build-arg SGLANG_MUSA_IMAGE=sglang:main-musa520-s5000 \
+  --build-arg SGLANG_MUSA_IMAGE=sglang:main-1895cab-musa520-s5000 \
   -t sglang-omni:main-musa520-s5000 .
 ```
 
