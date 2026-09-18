@@ -12,24 +12,38 @@ base SGLang environment, follow the SGLang Moore Threads GPU installation guide.
 
 ## 🐳 Option A: Docker
 
-Build the SGLang MUSA image first:
+Clone SGLang-Omni first and inspect the SGLang package version declared by this
+checkout:
+
+```bash
+git clone https://github.com/sgl-project/sglang-omni.git
+cd sglang-omni
+SGLANG_VERSION="$(sed -nE 's/^[[:space:]]*"sglang==([^";]+).*/\1/p' pyproject.toml)"
+printf 'SGLang package version declared by SGLang-Omni: %s\n' "${SGLANG_VERSION}"
+```
+
+Build the SGLang MUSA image using the tested revision:
 
 ```bash
 SGLANG_COMMIT=1895cabfa8d0c7b171d72717812abe0c5d831791
 git clone --branch main --single-branch \
-  https://github.com/sgl-project/sglang.git
-cd sglang
+  https://github.com/sgl-project/sglang.git ../sglang
+cd ../sglang
 git checkout "${SGLANG_COMMIT}"
 git show -s --format='Using SGLang commit: %H' HEAD
 docker build -f docker/musa.Dockerfile \
   -t sglang:main-1895cab-musa520-s5000 .
 ```
 
+`SGLANG_VERSION` is the Python package pin used by SGLang-Omni. The
+`v0.5.19` SGLang tag does not contain `docker/musa.Dockerfile`, so the MUSA
+base image uses the fixed `SGLANG_COMMIT` above, which contains the tested
+recipe.
+
 Then build the SGLang-Omni image on top of it:
 
 ```bash
-git clone https://github.com/sgl-project/sglang-omni.git
-cd sglang-omni
+cd ../sglang-omni
 omni_root="$(pwd)"
 docker build -f docker/musa.Dockerfile \
   --build-arg SGLANG_MUSA_IMAGE=sglang:main-1895cab-musa520-s5000 \
