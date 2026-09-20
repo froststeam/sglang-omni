@@ -12,15 +12,16 @@ base SGLang environment, follow the SGLang Moore Threads GPU installation guide.
 
 ## 🐳 Option A: Docker
 
-Clone SGLang-Omni first, read the SGLang package version declared by this
-checkout, and use the matching SGLang release:
+Clone SGLang-Omni first. The installation below is pinned to SGLang `v0.5.20`.
+To inspect the SGLang package version declared by a given SGLang-Omni
+checkout, use the commented command:
 
 ```bash
 git clone https://github.com/sgl-project/sglang-omni.git sglang-omni
 omni_root="$(cd sglang-omni && pwd)"
-SGLANG_VERSION="$(sed -nE 's/^[[:space:]]*"sglang==([^";]+).*/\1/p' "${omni_root}/pyproject.toml")"
-printf 'SGLang package version declared by SGLang-Omni: %s\n' "${SGLANG_VERSION}"
-test "${SGLANG_VERSION}" = "0.5.20"
+# SGLANG_VERSION="$(sed -nE 's/^[[:space:]]*"sglang==([^";]+).*/\1/p' "${omni_root}/pyproject.toml")"
+# printf 'SGLang package version declared by SGLang-Omni: %s\n' "${SGLANG_VERSION}"
+SGLANG_VERSION="0.5.20"
 git clone --branch "v${SGLANG_VERSION}" --single-branch \
   https://github.com/sgl-project/sglang.git "${omni_root}/../sglang"
 cd "${omni_root}/../sglang"
@@ -33,9 +34,8 @@ docker build -f docker/musa.Dockerfile \
   -t sglang-omni:main-musa520-s5000 .
 ```
 
-`SGLANG_VERSION` is read from the SGLang package pin in the SGLang-Omni
-checkout. The `v0.5.20` SGLang release includes `docker/musa.Dockerfile`, so
-the base image can be built directly from the matching immutable release tag.
+The base image is built from the immutable `v0.5.20` release tag, which
+includes `docker/musa.Dockerfile`.
 
 Run the image with MUSA devices exposed by the host runtime. If `mthreads` is
 already configured as the Docker default runtime on your host, omit
