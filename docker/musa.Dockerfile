@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1.7
 
 # SGLang-Omni MUSA image. Build SGLang's MUSA image first:
-#   SGLang commit: 1895cabfa8d0c7b171d72717812abe0c5d831791
-#   docker build -f docker/musa.Dockerfile -t sglang:main-1895cab-musa520-s5000 <sglang-repo>
+#   SGLang tag: v0.5.20
+#   docker build -f docker/musa.Dockerfile -t sglang:v0.5.20-musa520-s5000 <sglang-repo>
 # Then build this image:
 #   docker build -f docker/musa.Dockerfile -t sglang-omni:main-musa520-s5000 .
 
-ARG SGLANG_MUSA_IMAGE=sglang:main-1895cab-musa520-s5000
+ARG SGLANG_MUSA_IMAGE=sglang:v0.5.20-musa520-s5000
 
 FROM ${SGLANG_MUSA_IMAGE} AS runtime
 
