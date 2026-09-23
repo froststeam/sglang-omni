@@ -13,10 +13,6 @@ FROM ${SGLANG_MUSA_IMAGE} AS runtime
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV SGLANG_OMNI_REPO_DIR=/workspace/sglang-omni
-ENV MATE_MUSA_ARCH_LIST=3.1 \
-    PIP_CACHE_DIR=/root/.cache/pip \
-    TORCH_EXTENSIONS_DIR=/root/.cache/torch_extensions \
-    TRITON_CACHE_DIR=/root/.triton/cache
 
 ARG UBUNTU_APT_MIRROR=
 
@@ -25,19 +21,14 @@ RUN if [[ -n "${UBUNTU_APT_MIRROR}" ]]; then \
     fi \
     && apt-get -o Acquire::Retries=3 -o Acquire::ForceIPv4=true update \
     && apt-get install -y --no-install-recommends \
-        ffmpeg \
-        git \
         libdav1d-dev \
         libmp3lame-dev \
-        libsndfile1 \
         libsox-dev \
         libsox-fmt-all \
         libssl-dev \
         libx264-dev \
         nasm \
         pybind11-dev \
-        sox \
-        vainfo \
         yasm \
     && true
 
@@ -51,16 +42,12 @@ ARG FFMPEG_MUSA_REPO=https://github.com/MooreThreads/FFmpeg.git
 ARG FFMPEG_MUSA_REF=mt-7.0.2-public
 ARG TORCHCODEC_INSTALL_SPEC="torchcodec @ git+https://github.com/MooreThreads/torchcodec.git@release/0.5-musa-public"
 
-COPY pyproject_musa.toml /tmp/pyproject_musa.toml
 RUN python3 -m pip install --upgrade pip "setuptools<82" wheel \
-    && pip_index_opts=(--index-url "${PYPI_INDEX_URL}" --extra-index-url "${MUSA_PIP_INDEX_URL}" --trusted-host dl.mthreads.com) \
-    && cp pyproject.toml /tmp/pyproject_cuda.toml \
-    && cp /tmp/pyproject_musa.toml pyproject.toml \
+    && cp pyproject_musa.toml pyproject.toml \
     && git clone --depth 1 --branch "${FFMPEG_MUSA_REF}" \
         "${FFMPEG_MUSA_REPO}" /tmp/FFmpeg \
-    && ffmpeg_src="/tmp/FFmpeg" \
-    && mkdir -p "${ffmpeg_src}/build" \
-    && cd "${ffmpeg_src}/build" \
+    && mkdir -p /tmp/FFmpeg/build \
+    && cd /tmp/FFmpeg/build \
     && ../configure \
         --enable-shared \
         --enable-libmp3lame \
@@ -81,12 +68,12 @@ RUN python3 -m pip install --upgrade pip "setuptools<82" wheel \
         --extra-index-url "${MUSA_PIP_INDEX_URL}" \
         --trusted-host dl.mthreads.com \
     && python3 -m pip install --no-build-isolation -e . \
-        "${pip_index_opts[@]}" \
-    && cp /tmp/pyproject_cuda.toml pyproject.toml \
-    && rm /tmp/pyproject_musa.toml /tmp/pyproject_cuda.toml
+        --index-url "${PYPI_INDEX_URL}" \
+        --extra-index-url "${MUSA_PIP_INDEX_URL}" \
+        --trusted-host dl.mthreads.com
 
-# Install qwen-tts without dependencies to keep the inherited Transformers 5.12
-# and NumPy<2 stack.
+# Install qwen-tts without dependencies because it pins Transformers 4.57.3
+# and accelerate 1.12.0, which would replace the inherited stack.
 RUN python3 -m pip install --no-cache-dir --no-deps qwen-tts==0.1.1
 
 RUN python3 - <<'PY'

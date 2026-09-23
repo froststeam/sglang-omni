@@ -55,7 +55,7 @@ support. If you build SGLang from source, clone the pinned tag rather than
 
 ```bash
 git clone --depth 1 --branch v0.5.20 \
-  https://github.com/sgl-project/sglang.git ../sglang
+  https://github.com/sgl-project/sglang.git sglang
 ```
 
 ```bash
@@ -110,6 +110,8 @@ cd "${omni_root}"
     --extra-index-url https://pypi.org/simple \
     --trusted-host dl.mthreads.com
 
+  # qwen-tts pins Transformers 4.57.3 and accelerate 1.12.0, so install it
+  # without dependencies to preserve the inherited MUSA stack.
   python -m pip install --no-cache-dir --no-deps qwen-tts==0.1.1
 )
 ```
