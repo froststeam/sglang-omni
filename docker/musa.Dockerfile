@@ -53,24 +53,12 @@ ARG TORCHCODEC_INSTALL_SPEC="torchcodec @ git+https://github.com/MooreThreads/to
 
 COPY pyproject_musa.toml /tmp/pyproject_musa.toml
 RUN python3 -m pip install --upgrade pip "setuptools<82" wheel \
-    && pip_find_links=() \
     && pip_index_opts=(--index-url "${PYPI_INDEX_URL}" --extra-index-url "${MUSA_PIP_INDEX_URL}" --trusted-host dl.mthreads.com) \
-    && if [[ -d third_party/musa_wheelhouse ]]; then \
-        python3 -c 'from pathlib import Path; import zipfile; [wheel.unlink() for wheel in Path("third_party/musa_wheelhouse").glob("triton-*.whl") if not any(name.startswith("triton/backends/mtgpu/") for name in zipfile.ZipFile(wheel).namelist())]'; \
-        pip_find_links=(--find-links third_party/musa_wheelhouse); \
-        if [[ -f third_party/musa_wheelhouse/.omni-complete ]]; then \
-            pip_index_opts=(--no-index); \
-        fi; \
-    fi \
     && cp pyproject.toml /tmp/pyproject_cuda.toml \
     && cp /tmp/pyproject_musa.toml pyproject.toml \
-    && if [[ -f third_party/FFmpeg/configure ]]; then \
-        ffmpeg_src="${SGLANG_OMNI_REPO_DIR}/third_party/FFmpeg"; \
-    else \
-        git clone --depth 1 --branch "${FFMPEG_MUSA_REF}" \
-            "${FFMPEG_MUSA_REPO}" /tmp/FFmpeg; \
-        ffmpeg_src="/tmp/FFmpeg"; \
-    fi \
+    && git clone --depth 1 --branch "${FFMPEG_MUSA_REF}" \
+        "${FFMPEG_MUSA_REPO}" /tmp/FFmpeg \
+    && ffmpeg_src="/tmp/FFmpeg" \
     && mkdir -p "${ffmpeg_src}/build" \
     && cd "${ffmpeg_src}/build" \
     && ../configure \
@@ -89,20 +77,17 @@ RUN python3 -m pip install --upgrade pip "setuptools<82" wheel \
         I_CONFIRM_THIS_IS_NOT_A_LICENSE_VIOLATION=1 \
         ENABLE_MUSA=1 \
         python3 -m pip install --no-build-isolation --no-deps "${TORCHCODEC_INSTALL_SPEC}" \
-        "${pip_find_links[@]}" \
         --index-url "${PYPI_INDEX_URL}" \
         --extra-index-url "${MUSA_PIP_INDEX_URL}" \
         --trusted-host dl.mthreads.com \
     && python3 -m pip install --no-build-isolation -e . \
-        "${pip_find_links[@]}" \
         "${pip_index_opts[@]}" \
     && cp /tmp/pyproject_cuda.toml pyproject.toml \
     && rm /tmp/pyproject_musa.toml /tmp/pyproject_cuda.toml
 
-# qwen-tts pins Transformers 4.57.3, and resolving sox normally lifts numpy
-# past the ceiling imposed by numba==0.65.1. Keep the inherited 5.12 stack.
-RUN python3 -m pip install --no-cache-dir --no-deps sox einops \
-    && python3 -m pip install --no-cache-dir --no-deps qwen-tts==0.1.1
+# Install qwen-tts without dependencies to keep the inherited Transformers 5.12
+# and NumPy<2 stack.
+RUN python3 -m pip install --no-cache-dir --no-deps qwen-tts==0.1.1
 
 RUN python3 - <<'PY'
 import torch

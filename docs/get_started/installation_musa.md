@@ -13,24 +13,18 @@ base SGLang environment, follow the SGLang Moore Threads GPU installation guide.
 ## 🐳 Option A: Docker
 
 Clone SGLang-Omni first. The installation below is pinned to SGLang `v0.5.20`.
-To inspect the SGLang package version declared by a given SGLang-Omni
-checkout, use the commented command:
 
 ```bash
 git clone https://github.com/sgl-project/sglang-omni.git sglang-omni
 omni_root="$(cd sglang-omni && pwd)"
-# SGLANG_VERSION="$(sed -nE 's/^[[:space:]]*"sglang==([^";]+).*/\1/p' "${omni_root}/pyproject.toml")"
-# printf 'SGLang package version declared by SGLang-Omni: %s\n' "${SGLANG_VERSION}"
-SGLANG_VERSION="0.5.20"
-git clone --branch "v${SGLANG_VERSION}" --single-branch \
+git clone --branch v0.5.20 --single-branch \
   https://github.com/sgl-project/sglang.git "${omni_root}/../sglang"
 cd "${omni_root}/../sglang"
-test "$(git describe --tags --exact-match HEAD)" = "v${SGLANG_VERSION}"
 docker build -f docker/musa.Dockerfile \
-  -t "sglang:v${SGLANG_VERSION}-musa520-s5000" .
+  -t sglang:v0.5.20-musa520-s5000 .
 cd "${omni_root}"
 docker build -f docker/musa.Dockerfile \
-  --build-arg SGLANG_MUSA_IMAGE="sglang:v${SGLANG_VERSION}-musa520-s5000" \
+  --build-arg SGLANG_MUSA_IMAGE=sglang:v0.5.20-musa520-s5000 \
   -t sglang-omni:main-musa520-s5000 .
 ```
 
@@ -55,12 +49,19 @@ docker run -it --rm \
 
 ## 🛠️ Option B: Install from Source
 
-Start from an environment where SGLang has already been installed with MUSA
-support.
+Start from an environment where SGLang `v0.5.20` has been installed with MUSA
+support. If you build SGLang from source, clone the pinned tag rather than
+`main`:
+
+```bash
+git clone --depth 1 --branch v0.5.20 \
+  https://github.com/sgl-project/sglang.git ../sglang
+```
 
 ```bash
 git clone https://github.com/sgl-project/sglang-omni.git
 cd sglang-omni
+omni_root="$(pwd)"
 
 python -m pip install --upgrade pip "setuptools<82" wheel
 sudo apt-get update
@@ -103,7 +104,6 @@ python -m pip install -e . \
   --extra-index-url https://pypi.org/simple \
   --trusted-host dl.mthreads.com
 
-python -m pip install --no-cache-dir --no-deps sox einops
 python -m pip install --no-cache-dir --no-deps qwen-tts==0.1.1
 ```
 
