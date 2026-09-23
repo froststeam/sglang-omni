@@ -89,23 +89,33 @@ sudo make install
 sudo ldconfig
 cd "${omni_root}"
 
-cp pyproject_musa.toml pyproject.toml
-TORCH_DEVICE_BACKEND_AUTOLOAD=0 \
-I_CONFIRM_THIS_IS_NOT_A_LICENSE_VIOLATION=1 \
-ENABLE_MUSA=1 \
-python -m pip install --no-build-isolation --no-deps \
-  "torchcodec @ git+https://github.com/MooreThreads/torchcodec.git@release/0.5-musa-public" \
-  --index-url https://pypi.org/simple \
-  --extra-index-url https://dl.mthreads.com/repo/api/pypi/pypi/simple \
-  --trusted-host dl.mthreads.com
+(
+  set -e
+  pyproject_backup="$(mktemp)"
+  cp pyproject.toml "${pyproject_backup}"
+  trap 'cp "${pyproject_backup}" pyproject.toml; rm -f "${pyproject_backup}"' EXIT
 
-python -m pip install -e . \
-  --index-url https://dl.mthreads.com/repo/api/pypi/pypi/simple \
-  --extra-index-url https://pypi.org/simple \
-  --trusted-host dl.mthreads.com
+  cp pyproject_musa.toml pyproject.toml
+  TORCH_DEVICE_BACKEND_AUTOLOAD=0 \
+  I_CONFIRM_THIS_IS_NOT_A_LICENSE_VIOLATION=1 \
+  ENABLE_MUSA=1 \
+  python -m pip install --no-build-isolation --no-deps \
+    "torchcodec @ git+https://github.com/MooreThreads/torchcodec.git@release/0.5-musa-public" \
+    --index-url https://pypi.org/simple \
+    --extra-index-url https://dl.mthreads.com/repo/api/pypi/pypi/simple \
+    --trusted-host dl.mthreads.com
 
-python -m pip install --no-cache-dir --no-deps qwen-tts==0.1.1
+  python -m pip install -e . \
+    --index-url https://dl.mthreads.com/repo/api/pypi/pypi/simple \
+    --extra-index-url https://pypi.org/simple \
+    --trusted-host dl.mthreads.com
+
+  python -m pip install --no-cache-dir --no-deps qwen-tts==0.1.1
+)
 ```
+
+The subshell restores the original `pyproject.toml` when installation exits, so
+the source checkout is not left with the MUSA dependency overlay.
 
 The MUSA pyproject installs only SGLang-Omni overlay dependencies. The base
 MUSA torch stack, SGLang, sgl-kernel, Triton, TileLang, and MATE are inherited

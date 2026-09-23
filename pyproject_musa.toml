@@ -49,7 +49,9 @@ dependencies = [
     "openai-harmony==0.0.4",
     "soundfile>=0.12.0",
     "mistral_common[audio]>=1.11.0",
-    "silero-vad>=5.1",
+    # silero-vad 6.x requires torchaudio<2.10, which conflicts with the
+    # torchaudio 2.11 MUSA stack inherited from SGLang v0.5.20.
+    "silero-vad==5.1.2",
     "onnxruntime>=1.17",
     "websockets>=12.0",
     "scipy>=1.10.0",
